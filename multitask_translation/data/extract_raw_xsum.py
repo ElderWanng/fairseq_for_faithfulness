@@ -134,7 +134,7 @@ df_test_ent = df_test_ent.rename(columns={source_col: "source", target_col: "tar
 
 print(df_train)
 print(df_neg)
-print(df_test_ent)
+print(df_v_ent)
 print(df_test_ent)
 
 with open(pathlib.Path(args.pos_out_dir, "train.source").as_posix(),'w') as trainfile:

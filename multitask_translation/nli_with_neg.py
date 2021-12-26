@@ -376,15 +376,15 @@ class NliWithNeg(LegacyFairseqTask):
                 )
                 logger.info(f'loaded {split} ,{key},{len(dataset)} examples')
                 subset_datasets.update({key: dataset})
-            # sizes = {key: v.size() for key, v in subset_datasets.items()}
-
+            sizes = {key: len(v) for key, v in subset_datasets.items()}
+            logger.info(f'loaded {split} ,{key},{sizes} examples')
             self.datasets[split] = SampledMultiDataset2(
                 subset_datasets,
                 # collate_format=CollateFormat.ordered_dict,
                 eval_key=None,
                 split=split,
             )
-            logger.info(f'subset_datasets {subset_datasets}')
+            logger.info(f'subset_datasets {subset_datasets},size is {len(self.datasets[split])}')
 
             # RRdataset
             # RRdataset = RoundRobinZipDatasets(
