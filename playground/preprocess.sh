@@ -1,4 +1,6 @@
-DATA=/home/tw2112/codes/fairseq/playground/data/xsum
+set -e
+
+DATA=$SCRATCH/codes/ablation/xsum
 for SPLIT in train valid test
 do
   for LANG in source target
