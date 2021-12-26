@@ -73,5 +73,4 @@ fairseq-train $DATA_DIR \
     --fp16 --update-freq $UPDATE_FREQ \
     --skip-invalid-size-inputs-valid-test \
     --find-unused-parameters \
-    --log-file $LOGFILE \
-    --max-epoch 1;
+    --log-file $LOGFILE;
