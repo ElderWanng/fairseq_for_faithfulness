@@ -132,7 +132,7 @@ class CollateFormat(Enum):
     ordered_dict = 2
 
 
-class SampledMultiDataset(FairseqDataset):
+class SampledMultiDataset2(FairseqDataset):
     """Samples from multiple sub-datasets according to given sampling ratios.
     Args:
         datasets (
@@ -163,8 +163,8 @@ class SampledMultiDataset(FairseqDataset):
         sampling_ratios=None,
         seed=2,
         epoch=1,
-        # eval_key=None,
-        # collate_format=CollateFormat.single,
+        eval_key=None,
+        collate_format=CollateFormat.ordered_dict,
         virtual_size=default_virtual_size_func,
         split="",
         shared_collater=False,
@@ -184,11 +184,11 @@ class SampledMultiDataset(FairseqDataset):
         self.datasets = datasets
         self.split = split
 
-        # self.eval_key = eval_key
-        # if self.eval_key is not None:
-        #     self.collate_format = CollateFormat.single
-        # else:
-        #     self.collate_format = collate_format
+        self.eval_key = eval_key
+        if self.eval_key is not None:
+            self.collate_format = CollateFormat.single
+        else:
+            self.collate_format = collate_format
 
         self.seed = seed
         self._cur_epoch = None
@@ -339,7 +339,7 @@ class SampledMultiDataset(FairseqDataset):
         """Merge a list of samples to form a mini-batch."""
         if len(samples) == 0:
             return None
-        if self.collate_format == "ordered_dict":
+        if self.collate_format == CollateFormat.ordered_dict:
             collect_samples = [[] for _ in range(len(self.datasets))]
             for (i, sample) in samples:
                 collect_samples[i].append(sample)
@@ -413,6 +413,8 @@ class SampledMultiDataset(FairseqDataset):
                 batch["tgt_lang_id"] = straight_order(
                     [b["tgt_lang_id"] for b in batches]
                 )
+
+        # logger.info(f"batch is {batch}")
         return batch
 
     @property

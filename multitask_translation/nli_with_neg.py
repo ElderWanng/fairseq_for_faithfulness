@@ -22,11 +22,13 @@ from fairseq.data import (
     data_utils,
     encoders,
     indexed_dataset,
-    SampledMultiDataset,
+    # SampledMultiDataset,
     SampledMultiEpochDataset, RoundRobinZipDatasets
 )
 from fairseq.data.multilingual.sampled_multi_dataset import CollateFormat
 from fairseq.tasks import LegacyFairseqTask, register_task
+from .multitask_dataset.multitask_dataset import SampledMultiDataset2
+
 
 EVAL_BLEU_ORDER = 4
 
@@ -374,29 +376,29 @@ class NliWithNeg(LegacyFairseqTask):
                 )
                 logger.info(f'loaded {split} ,{key},{len(dataset)} examples')
                 subset_datasets.update({key: dataset})
-                # sizes = {key: v.size() for key, v in subset_datasets.items()}
+            # sizes = {key: v.size() for key, v in subset_datasets.items()}
 
-                # self.datasets[split] = SampledMultiDataset(
-                #     subset_datasets,
-                #     collate_format=CollateFormat.ordered_dict,
-                #     eval_key=None,
-                #     split=split,
-                # )
-            logger.info(f'subset_datasets {subset_datasets}')
-            RRdataset = RoundRobinZipDatasets(
-
-                OrderedDict(
-                    [
-                        (k, v)
-                        for k,v in subset_datasets.items()
-                    ]
-                ),
-                eval_key=None
+            self.datasets[split] = SampledMultiDataset2(
+                subset_datasets,
+                # collate_format=CollateFormat.ordered_dict,
+                eval_key=None,
+                split=split,
             )
+            logger.info(f'subset_datasets {subset_datasets}')
 
-            logger.info(f'RR dataset is created {len(RRdataset)}')
-
-            self.datasets[split] = RRdataset
+            # RRdataset
+            # RRdataset = RoundRobinZipDatasets(
+            #
+            #     OrderedDict(
+            #         [
+            #             (k, v)
+            #             for k,v in subset_datasets.items()
+            #         ]
+            #     ),
+            #     eval_key=None
+            # )
+            # logger.info(f'RR dataset is created {len(RRdataset)}')
+            # self.datasets[split] = RRdataset
 
 
 
@@ -471,6 +473,7 @@ class NliWithNeg(LegacyFairseqTask):
         self, sample, model, criterion, optimizer, update_num, ignore_grad=False
     ):
         # logger.info(sample)
+        keys = sample.keys()
         # logger.info(sample.keys())
         model.train()
 
@@ -500,15 +503,18 @@ class NliWithNeg(LegacyFairseqTask):
 
         if self.lambda_main > 0.0:
             key = 'main'
-            forward_backward(model, sample[key],'main', self.lambda_main)
+            if key in keys:
+                forward_backward(model, sample[key],key, self.lambda_main)
 
         if self.lambda_neg > 0.0:
             key = 'negative'
-            forward_backward(model, sample[key], 'neg', self.lambda_neg)
+            if key in keys:
+                forward_backward(model, sample[key], key, self.lambda_neg)
 
         if self.lambda_nli > 0.0:
             key = 'nli'
-            forward_backward(model, sample[key], 'nli', self.lambda_nli)
+            if key in keys:
+                forward_backward(model, sample[key], key, self.lambda_nli)
 
         return agg_loss, agg_sample_size, agg_logging_output
 
