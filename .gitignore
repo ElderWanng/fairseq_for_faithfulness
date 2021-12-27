@@ -142,3 +142,4 @@ wandb/
 /playground/giga/*.target
 /.circleci/
 /.github/
+/multitask_translation/outdir/

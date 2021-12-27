@@ -5,8 +5,8 @@ LEN_PEN=1.0
 DATA=/home/tw2112/codes/fairseq/playground/data/xsum
 
 DATA_PATH=$DATA/binarized
-MODEL_PATH=/scratch/tw2112/codes/ablation/xsum/checkpoint/checkpoint5.pt
-RESULT_PATH=./outdir/xsum_concate3
+MODEL_PATH=/scratch/tw2112/codes/ablation/xsum/ckpt2/checkpoint_best.pt
+RESULT_PATH=./outdir/xsum_concate4
 
 conda activate ablation
 

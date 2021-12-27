@@ -2,11 +2,11 @@ BEAM_SIZE=6
 MAX_LEN_B=128
 MIN_LEN=10
 LEN_PEN=1.0
-DATA=/scratch/tw2112/codes/ablation/xsum_weight
+DATA=/scratch/tw2112/codes/ablation/xsum
 
-DATA_PATH=$DATA/pos_bin
+DATA_PATH=$DATA/pos_binarized
 MODEL_PATH=$DATA/ckpt_ablation4/checkpoint_best.pt
-RESULT_PATH=./outdir/xsum_ablation2
+RESULT_PATH=./outdir/xsum_ablation
 
 
 fairseq-generate $DATA_PATH \

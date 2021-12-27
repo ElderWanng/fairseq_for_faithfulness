@@ -16,7 +16,7 @@ source_file = '/scratch/tw2112/codes/ablation/xsum_weight/pos_raw/test.source'
 
 import  pandas as pd
 
-keep = 4000
+keep = 40000
 with open(label_file,'r') as reffile:
     refs = []
     for i in reffile:
