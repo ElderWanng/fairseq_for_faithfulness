@@ -11,6 +11,8 @@ from argparse import Namespace
 from collections import OrderedDict, defaultdict
 
 import numpy as np
+import torch
+
 from fairseq import metrics, options, utils
 from fairseq.data import (
     AppendTokenDataset,
@@ -26,15 +28,15 @@ from fairseq.data import (
     SampledMultiEpochDataset, RoundRobinZipDatasets
 )
 from fairseq.data.multilingual.sampled_multi_dataset import CollateFormat
+from fairseq.optim import AMPOptimizer
 from fairseq.tasks import LegacyFairseqTask, register_task
 from .multitask_dataset.multitask_dataset import SampledMultiDataset2
-
 
 EVAL_BLEU_ORDER = 4
 
 logger = logging.getLogger(__name__)
 
-
+logger.setLevel(logging.INFO)
 def parse_lambda_config(x):
     """
     Parse the configuration of lambda coefficient (for scheduling).
@@ -215,7 +217,8 @@ class NliWithNeg(LegacyFairseqTask):
         """Add task-specific arguments to the parser."""
         # fmt: off
         parser.add_argument('data', help='bin-path to main dataset (binarized)')
-        parser.add_argument('--negative-data', default=None, required=False, help='path to negative main dataset (binarized)')
+        parser.add_argument('--negative-data', default=None, required=False,
+                            help='path to negative main dataset (binarized)')
         parser.add_argument('--nli-data', default=None, required=False, help='path to nli dataset (binarized)')
         parser.add_argument('--lambda-main-config', default="1.0", type=str, metavar='CONFIG',
                             help='cross-entropy reconstruction coefficient (parallel data). '
@@ -297,7 +300,6 @@ class NliWithNeg(LegacyFairseqTask):
         else:
             self.lambda_nli, self.lambda_nli_steps = 0, None
 
-
     @classmethod
     def setup_task(cls, args, **kwargs):
         """Setup the task (e.g., load dictionaries).
@@ -344,7 +346,7 @@ class NliWithNeg(LegacyFairseqTask):
         src, tgt = self.args.source_lang, self.args.target_lang
         # src_datasets, tgt_datasets = {}, {}
 
-        if split=='train':
+        if split == 'train':
             subset_paths = {"main": self.args.data, "negative": self.args.negative_data, "nli": self.args.nli_data}
             subset_datasets = OrderedDict()
             for key, paths in subset_paths.items():
@@ -380,7 +382,7 @@ class NliWithNeg(LegacyFairseqTask):
 
             self.datasets[split] = SampledMultiDataset2(
                 subset_datasets,
-                # collate_format=CollateFormat.ordered_dict,
+                collate_format=CollateFormat.single,
                 eval_key=None,
                 split=split,
             )
@@ -436,9 +438,6 @@ class NliWithNeg(LegacyFairseqTask):
 
             logger.info(f'loaded {split}, {len(dataset)} examples')
 
-
-
-
     def build_dataset_for_inference(self, src_tokens, src_lengths, constraints=None):
         return LanguagePairDataset(
             src_tokens,
@@ -469,54 +468,57 @@ class NliWithNeg(LegacyFairseqTask):
             )
         return model
 
+    # def train_step(
+    #     self, sample, model, criterion, optimizer, update_num, ignore_grad=False
+    # ):
+    #     return super(NliWithNeg, self).train_step(sample, model, criterion, optimizer, update_num, ignore_grad)
+
     def train_step(
-        self, sample, model, criterion, optimizer, update_num, ignore_grad=False
+            self, sample, model, criterion, optimizer, update_num, ignore_grad=False
     ):
-        # logger.info(sample)
-        keys = sample.keys()
-        # logger.info(sample.keys())
+
         model.train()
 
-        if update_num > 0:
-            self.update_step(update_num)
 
-        agg_loss, agg_sample_size, agg_logging_output = 0.0, 0.0, defaultdict(lambda: 0)
-        def forward_backward(model, samples, logging_output_key, weight):
-            # logger.info(f"{logging_output_key},{weight}")
-            nonlocal agg_loss, agg_sample_size, agg_logging_output
-            if samples is None or len(samples) == 0:
-                return
-            loss, sample_size, logging_output = criterion(model, samples)
-            # logger.info(f"{logging_output}")
-            # logger.info(f"{type(logging_output)}")
-            if ignore_grad:
-                loss *= 0
-            else:
-                loss *= weight
+        if "dataset_id" in sample:
+            dataset_id = sample["dataset_id"]
+            weights = torch.tensor([self.lambda_main, self.lambda_neg, self.lambda_nli],device=dataset_id.device)
+
+            weights_vec = weights[sample["dataset_id"]]
+            sample["weights"] = weights_vec
+        else:
+            weights = None
+            weights_vec=None
+            sample["weights"] = None
+
+
+        with torch.autograd.profiler.record_function("forward"):
+            with torch.cuda.amp.autocast(enabled=(isinstance(optimizer, AMPOptimizer))):
+
+                loss, sample_size, logging_output = criterion(model, sample, reduce=False)
+
+        if ignore_grad:
+            loss *= 0
+        logger.debug(f"{loss.shape}")
+        # logger.debug(f"{weights_vec.data}")
+
+        # with torch.no_grad():
+        if weights_vec is not None:
+            weights_vec = weights_vec.view(-1, 1)
+            logger.debug(weights_vec)
+            loss = loss*weights_vec
+
+
+        loss = loss.sum()
+        # if "dataset_id" in sample:
+        #     max_ds_id = sample['dataset_id'].max()
+        #     datasets_count = {i: (sample['dataset_id'] == i).sum().item() for i in range(max_ds_id.item()+1)}
+        #     for k, v in datasets_count.items():
+        #         logging_output["ds" + f"{k}"] = v
+
+        with torch.autograd.profiler.record_function("backward"):
             optimizer.backward(loss)
-            agg_loss += loss.detach().item()
-            # TODO make summing of the sample sizes configurable
-            agg_sample_size += sample_size
-            for k in logging_output:
-                agg_logging_output[k] += logging_output[k]
-                agg_logging_output[logging_output_key] += logging_output[k]
-
-        if self.lambda_main > 0.0:
-            key = 'main'
-            if key in keys:
-                forward_backward(model, sample[key],key, self.lambda_main)
-
-        if self.lambda_neg > 0.0:
-            key = 'negative'
-            if key in keys:
-                forward_backward(model, sample[key], key, self.lambda_neg)
-
-        if self.lambda_nli > 0.0:
-            key = 'nli'
-            if key in keys:
-                forward_backward(model, sample[key], key, self.lambda_nli)
-
-        return agg_loss, agg_sample_size, agg_logging_output
+        return loss, sample_size, logging_output
 
     def valid_step(self, sample, model, criterion):
         loss, sample_size, logging_output = super().valid_step(sample, model, criterion)
@@ -534,6 +536,18 @@ class NliWithNeg(LegacyFairseqTask):
 
     def reduce_metrics(self, logging_outputs, criterion):
         super().reduce_metrics(logging_outputs, criterion)
+        # dataset1_samples = sum(log.get("ds0", 0) for log in logging_outputs)+1
+        # dataset2_samples = sum(log.get("ds1", 0) for log in logging_outputs)+1
+        # dataset3_samples = sum(log.get("ds2", 0) for log in logging_outputs)
+        # metrics.log_scalar_sum(
+        #     "ds0", dataset1_samples
+        # )
+        # metrics.log_scalar(
+        #     "ds1", dataset2_samples, 1, round=3
+        # )
+        # metrics.log_scalar(
+        #     "ds2", dataset3_samples, 1, round=3
+        # )
         if self.args.eval_bleu:
 
             def sum_logs(key):
@@ -621,7 +635,6 @@ class NliWithNeg(LegacyFairseqTask):
         else:
             return sacrebleu.corpus_bleu(hyps, [refs])
 
-
     def update_step(self, num_updates):
         def lambda_step_func(config, n_iter):
             """
@@ -651,4 +664,3 @@ class NliWithNeg(LegacyFairseqTask):
             )
         if self.lambda_nli_steps is not None:
             self.lambda_nli = lambda_step_func(self.lambda_nli_steps, num_updates)
-

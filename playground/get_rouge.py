@@ -1,11 +1,11 @@
 import datasets
 
 
-hypo_file = './outdir/xsum_concate4/formatted-test.txt'
-label_file = './test.target'
+# hypo_file = './outdir/xsum_concate4/formatted-test.txt'
+# label_file = './test.target'
 
-# hypo_file = 'outdir/giga2/formatted-test.txt'
-# label_file = 'giga/test.target'
+hypo_file = 'outdir/giga2/formatted-test.txt'
+label_file = 'giga/test.target'
 
 rouge = datasets.load_metric('rouge')
 with open(label_file,'r') as reffile:

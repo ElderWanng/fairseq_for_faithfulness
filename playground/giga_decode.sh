@@ -6,7 +6,7 @@ DATA=/scratch/tw2112/codes/ablation/giga
 
 DATA_PATH=$DATA/giga_binarized
 MODEL_PATH=$DATA/ckpt2/checkpoint_best.pt
-RESULT_PATH=./outdir/giga
+RESULT_PATH=./outdir/giga2
 
 
 fairseq-generate $DATA_PATH \

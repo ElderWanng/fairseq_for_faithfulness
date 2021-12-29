@@ -7,7 +7,7 @@ mkdir $DATA/neg_bin -p
 
 NEG_CSV=/home/tw2112/codes/s2s/src/giga_data/giga_neg.csv
 
-python data/extract_raw_xsum.py  --dataset_name gigaword --neg_csv $NEG_CSV --pos_out_dir $DATA/pos_raw --neg_out_dir $DATA/neg_raw --keep_neg 0.5 --text_column document --summary_column summary
+python data/extract_raw_xsum.py  --dataset_name gigaword --neg_csv $NEG_CSV --pos_out_dir $DATA/pos_raw --neg_out_dir $DATA/neg_raw --keep_neg 1 --text_column document --summary_column summary
 
 
 

@@ -339,6 +339,7 @@ class SampledMultiDataset2(FairseqDataset):
         """Merge a list of samples to form a mini-batch."""
         if len(samples) == 0:
             return None
+        # logger.info(f"{self.keys, self.datasets}")
         if self.collate_format == CollateFormat.ordered_dict:
             collect_samples = [[] for _ in range(len(self.datasets))]
             for (i, sample) in samples:
@@ -368,11 +369,16 @@ class SampledMultiDataset2(FairseqDataset):
                         pad_to_length["target"], s["target"].size(0)
                     )
                 samples_dict[ds_idx].append(s)
-            batches = [
-                self.datasets[i].collater(samples_dict[i], pad_to_length=pad_to_length)
-                for i in range(len(self.datasets))
-                if len(samples_dict[i]) > 0
-            ]
+            sample_num_dict = {k:len(v) for k,v in samples_dict.items()}
+            batches = []
+            for i in range(len(self.datasets)):
+                if len(samples_dict[i]) > 0:
+                    mini_batch = self.datasets[i].collater(samples_dict[i], pad_to_length=pad_to_length)
+                    mini_batch["dataset_id"] = torch.LongTensor([i for _ in range(sample_num_dict[i])])
+                    batches.append(mini_batch)
+            # batches: List[ dict('id', 'nsentences', 'ntokens', 'net_input', 'target') ]
+
+            # logger.info(f"{len(batches)},{batches[0]}")
 
             def straight_data(tensors):
                 batch = torch.cat(tensors, dim=0)
@@ -388,6 +394,7 @@ class SampledMultiDataset2(FairseqDataset):
                 return batch.index_select(0, sort_order)
 
             batch = {
+                "dataset_id": straight_order([b["dataset_id"] for b in batches]),
                 "id": straight_order([b["id"] for b in batches]),
                 "nsentences": sum(b["nsentences"] for b in batches),
                 "ntokens": sum(b["ntokens"] for b in batches),
@@ -414,7 +421,7 @@ class SampledMultiDataset2(FairseqDataset):
                     [b["tgt_lang_id"] for b in batches]
                 )
 
-        # logger.info(f"batch is {batch}")
+        # logger.info(f"batch is {len(batch['id'])}")
         return batch
 
     @property

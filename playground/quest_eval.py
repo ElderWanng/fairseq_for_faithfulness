@@ -1,15 +1,15 @@
 from questeval.questeval_metric import QuestEval
 questeval = QuestEval(no_cuda=False)
-#xsum
-source_file = 'test.source'
-hypo_file = 'outdir/formatted-test.txt'
-label_file = 'test.target'
+# #xsum
+# source_file = 'test.source'
+# hypo_file = 'outdir/formatted-test.txt'
+# label_file = 'test.target'
 
 
-#giga
-# source_file = 'giga/test.source'
-# hypo_file = 'outdir/giga2/formatted-test.txt'
-# label_file = 'giga/test.target'
+# giga
+source_file = 'giga/test.source'
+hypo_file = 'outdir/giga2/formatted-test.txt'
+label_file = 'giga/test.target'
 
 import  pandas as pd
 
