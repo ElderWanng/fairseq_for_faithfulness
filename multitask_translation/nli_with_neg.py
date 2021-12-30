@@ -25,18 +25,20 @@ from fairseq.data import (
     encoders,
     indexed_dataset,
     # SampledMultiDataset,
-    SampledMultiEpochDataset, RoundRobinZipDatasets
+    SampledMultiEpochDataset, RoundRobinZipDatasets,
 )
 from fairseq.data.multilingual.sampled_multi_dataset import CollateFormat
 from fairseq.optim import AMPOptimizer
 from fairseq.tasks import LegacyFairseqTask, register_task
 from .multitask_dataset.multitask_dataset import SampledMultiDataset2
-
+from .multitask_dataset.resampling_dataset import ResamplingDataset2
 EVAL_BLEU_ORDER = 4
 
 logger = logging.getLogger(__name__)
 
 logger.setLevel(logging.INFO)
+
+
 def parse_lambda_config(x):
     """
     Parse the configuration of lambda coefficient (for scheduling).
@@ -220,6 +222,7 @@ class NliWithNeg(LegacyFairseqTask):
         parser.add_argument('--negative-data', default=None, required=False,
                             help='path to negative main dataset (binarized)')
         parser.add_argument('--nli-data', default=None, required=False, help='path to nli dataset (binarized)')
+        parser.add_argument('--nli-size', default=2e10,type=int, required=False, help='resize the nlidataset')
         parser.add_argument('--lambda-main-config', default="1.0", type=str, metavar='CONFIG',
                             help='cross-entropy reconstruction coefficient (parallel data). '
                                  'use fixed weight during training if set to floating point number. '
@@ -376,6 +379,16 @@ class NliWithNeg(LegacyFairseqTask):
                     shuffle=(split != "test"),
                     pad_to_multiple=self.args.required_seq_len_multiple,
                 )
+
+                if key == "nli":
+                    nli_size = self.args.nli_size
+                    nli_ratio = nli_size/len(dataset)
+                    nli_ratio = min(1,nli_ratio)
+                    if nli_ratio<1:
+                        logger.info(f"size of nli is {len(dataset)}, resample it to {nli_size}")
+                        dataset = ResamplingDataset2(dataset, replace=False, size_ratio=nli_ratio)
+                    else:
+                        logger.info(f"size of nli is {len(dataset)}, degrade to language pair case")
                 logger.info(f'loaded {split} ,{key},{len(dataset)} examples')
                 subset_datasets.update({key: dataset})
             # sizes = {key: v.size() for key, v in subset_datasets.items()}
@@ -479,22 +492,19 @@ class NliWithNeg(LegacyFairseqTask):
 
         model.train()
 
-
         if "dataset_id" in sample:
             dataset_id = sample["dataset_id"]
-            weights = torch.tensor([self.lambda_main, self.lambda_neg, self.lambda_nli],device=dataset_id.device)
+            weights = torch.tensor([self.lambda_main, self.lambda_neg, self.lambda_nli], device=dataset_id.device)
 
             weights_vec = weights[sample["dataset_id"]]
             sample["weights"] = weights_vec
         else:
             weights = None
-            weights_vec=None
+            weights_vec = None
             sample["weights"] = None
-
 
         with torch.autograd.profiler.record_function("forward"):
             with torch.cuda.amp.autocast(enabled=(isinstance(optimizer, AMPOptimizer))):
-
                 loss, sample_size, logging_output = criterion(model, sample, reduce=False)
 
         if ignore_grad:
@@ -506,8 +516,7 @@ class NliWithNeg(LegacyFairseqTask):
         if weights_vec is not None:
             weights_vec = weights_vec.view(-1, 1)
             logger.debug(weights_vec)
-            loss = loss*weights_vec
-
+            loss = loss * weights_vec
 
         loss = loss.sum()
         # if "dataset_id" in sample:

@@ -1,12 +1,13 @@
+set -e
 BEAM_SIZE=6
 MAX_LEN_B=128
 MIN_LEN=10
 LEN_PEN=1.0
-DATA=/scratch/tw2112/codes/ablation/giga
+DATA=/scratch/tw2112/codes/ablation/giga_weight
 
-DATA_PATH=$DATA/giga_binarized
-MODEL_PATH=$DATA/ckpt2/checkpoint_best.pt
-RESULT_PATH=./outdir/giga
+DATA_PATH=$DATA/pos_bin
+MODEL_PATH=$DATA/ckpt_ablation5/checkpoint_best.pt
+RESULT_PATH=./outdir/giga_weight
 
 
 fairseq-generate $DATA_PATH \
@@ -18,4 +19,4 @@ fairseq-generate $DATA_PATH \
     --truncate-source --gen-subset test;
 
 
-python  convert_bart_test.py --generate-dir $RESULT_PATH
+python  convert_bart_result.py --generate-dir $RESULT_PATH

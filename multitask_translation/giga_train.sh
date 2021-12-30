@@ -1,24 +1,30 @@
 set -e
 export BART_PATH=/scratch/tw2112/codes/models/bart.large/model.pt
 DATA=/scratch/tw2112/codes/ablation/giga_weight
-TOTAL_NUM_UPDATES=40000
+
+
+
+TOTAL_NUM_UPDATES=30000
 WARMUP_UPDATES=500
 LR=3e-05
 END_LR=6e-6
-#TOTAL_NUM_UPDATES=10000
-#WARMUP_UPDATES=500
+MAX_TOKENS=2048
+UPDATE_FREQ=4
 #LR=1e-05
 SAVE_EVERY=2000
 
-MAX_TOKENS=2048
-#UPDATE_FREQ=4
-UPDATE_FREQ=4
-SAVE_PATH=$DATA/ckpt_ablation5
+SAVE_PATH=$DATA/ckpt_nli
 
 DATA_DIR=$DATA/pos_bin
 NEG_DIR=$DATA/neg_bin
+NLI_DIR=$DATA/nli_bin
 
-LOGFILE=log/log_giga.txt
+NEG_COEF=0.8
+NLI_COEF=0.8
+NLI_SIZE=2000000
+
+
+LOGFILE=log/log_giga_nli.txt
 
 #fairseq-train $DATA_DIR \
 #  --negative-data $NEG_DIR \
@@ -48,8 +54,11 @@ LOGFILE=log/log_giga.txt
 #    --user-dir ./ ;
 
 fairseq-train $DATA_DIR \
-  --negative-data $NEG_DIR \
-   --lambda-neg-config 0.44 \
+    --negative-data $NEG_DIR \
+    --lambda-neg-config $NEG_COEF \
+    --nli-data $NLI_DIR \
+    --nli-size  $NLI_SIZE \
+    --lambda-nli-config $NLI_COEF \
     --restore-file $BART_PATH \
     --save-dir $SAVE_PATH \
     --max-tokens $MAX_TOKENS \

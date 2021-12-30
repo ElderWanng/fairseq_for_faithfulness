@@ -1,21 +1,25 @@
 set -e
 export BART_PATH=/scratch/tw2112/codes/models/bart.large/model.pt
 DATA=/scratch/tw2112/codes/ablation/xsum_weight
-TOTAL_NUM_UPDATES=30000
+TOTAL_NUM_UPDATES=40000
 WARMUP_UPDATES=500
 LR=3e-05
 END_LR=6e-6
 
 NEG_COEF=0.448
+NLI_COEF=0.4
+NLI_SIZE=200000
+
 SAVE_EVERY=1500
 MAX_TOKENS=2048
 UPDATE_FREQ=4
 
 
-SAVE_PATH=$DATA/ckpt_ablation5
+SAVE_PATH=$DATA/ckpt_nli
 
 DATA_DIR=$DATA/pos_bin
 NEG_DIR=$DATA/neg_bin
+NLI_DIR=$DATA/nli_bin
 
 LOGFILE=log/log.txt
 
@@ -25,8 +29,9 @@ LOGFILE=log/log.txt
 fairseq-train $DATA_DIR \
     --negative-data $NEG_DIR \
     --lambda-neg-config $NEG_COEF \
-    --negative-data $NEG_DIR \
-    --lambda-neg-config $NEG_COEF \
+    --nli-data $NLI_DIR \
+    --nli-size  $NLI_SIZE \
+    --lambda-nli-config $NLI_COEF \
     --restore-file $BART_PATH \
     --save-dir $SAVE_PATH \
     --max-tokens $MAX_TOKENS \

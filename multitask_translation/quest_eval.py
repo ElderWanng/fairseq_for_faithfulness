@@ -1,22 +1,22 @@
 from questeval.questeval_metric import QuestEval
 questeval = QuestEval(no_cuda=False)
-#xsum
-
-hypo_file = './outdir/xsum_ablation2/formatted-test.txt'
+# #xsum
+#
+hypo_file = './outdir/xsum_ablation_weight/formatted-test.txt'
 label_file = '/scratch/tw2112/codes/ablation/xsum_weight/pos_raw/test.target'
 
 source_file = '/scratch/tw2112/codes/ablation/xsum_weight/pos_raw/test.source'
 
 
 
-#giga
-# source_file = 'giga/test.source'
-# hypo_file = 'outdir/giga2/formatted-test.txt'
-# label_file = 'giga/test.target'
+# giga
+# source_file = '/scratch/tw2112/codes/ablation/giga_weight/pos_raw/test.source'
+# hypo_file = './outdir/giga_weight/formatted-test.txt'
+# label_file = '/scratch/tw2112/codes/ablation/giga_weight/pos_raw/test.target'
 
 import  pandas as pd
 
-keep = 40000
+keep = 2000
 with open(label_file,'r') as reffile:
     refs = []
     for i in reffile:
