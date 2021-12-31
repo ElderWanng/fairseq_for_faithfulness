@@ -143,3 +143,13 @@ wandb/
 /.circleci/
 /.github/
 /multitask_translation/outdir/
+/hubconf.py
+/LICENSE
+/pyproject.toml
+/setup.py
+/setup.cfg
+/.gitmodules
+/.isort.cfg
+/.pre-commit-config.yaml
+/venv/
+/playground/train_debug.sh
