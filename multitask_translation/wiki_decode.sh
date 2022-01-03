@@ -3,11 +3,11 @@ BEAM_SIZE=6
 MAX_LEN_B=128
 MIN_LEN=10
 LEN_PEN=1.0
-DATA=/scratch/tw2112/codes/ablation/giga_weight
+DATA=/scratch/tw2112/codes/ablation/wiki_weight
 
 DATA_PATH=$DATA/pos_bin
 MODEL_PATH=$DATA/ckpt_nli/checkpoint_best.pt
-RESULT_PATH=./outdir/giga_weight_nli
+RESULT_PATH=./outdir/wiki_weight_nli
 
 
 fairseq-generate $DATA_PATH \

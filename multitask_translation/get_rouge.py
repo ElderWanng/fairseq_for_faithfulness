@@ -1,7 +1,7 @@
 import datasets
 
-hypo_file = './outdir/giga_weight/formatted-test.txt'
-label_file = '/scratch/tw2112/codes/ablation/giga_weight/pos_raw/test.target'
+hypo_file = './outdir/xsum_ablation_nli2/formatted-test.txt'
+label_file = '/scratch/tw2112/codes/ablation/xsum_weight/pos_raw/test.target'
 
 # hypo_file = 'outdir/giga2/formatted-test.txt'
 # label_file = 'giga/test.target'

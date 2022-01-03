@@ -6,8 +6,8 @@ LEN_PEN=1.0
 DATA=/scratch/tw2112/codes/ablation/xsum_weight
 
 DATA_PATH=$DATA/pos_bin
-MODEL_PATH=$DATA/ckpt_ablation5/checkpoint_best.pt
-RESULT_PATH=./outdir/xsum_ablation_weight
+MODEL_PATH=$DATA/ckpt_nli2/checkpoint_best.pt
+RESULT_PATH=./outdir/xsum_ablation_nli2
 
 
 fairseq-generate $DATA_PATH \

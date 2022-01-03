@@ -68,7 +68,7 @@ source_col = args.text_column
 target_col = args.summary_column
 main_dataset = datasets.load_dataset(args.dataset_name, args.dataset_config_name, args.data_dir)
 
-
+print(main_dataset)
 def add_index(example, index):
     example.update({"order_num": index})
     example.update({"task": 'sum'})

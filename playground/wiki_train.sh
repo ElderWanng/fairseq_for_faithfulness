@@ -1,15 +1,16 @@
 set -e
+#export BART_PATH=/scratch/tw2112/codes/ablation/xsum/ckpt2/checkpoint1.pt
 export BART_PATH=/scratch/tw2112/codes/models/bart.large/model.pt
-DATA=/scratch/tw2112/codes/ablation/giga
+DATA=/scratch/tw2112/codes/ablation/wiki
 TOTAL_NUM_UPDATES=20000
 WARMUP_UPDATES=500
 LR=3e-05
-END_LR=6e-6
 MAX_TOKENS=2048
 UPDATE_FREQ=4
-SAVE_PATH=$DATA/ckpt4
+SAVE_PATH=$DATA/checkpoint2
+END_LR=6e-6
 
-DATA_DIR=$DATA/giga_binarized
+DATA_DIR=$DATA/bin
 
 fairseq-train $DATA_DIR \
     --restore-file $BART_PATH \

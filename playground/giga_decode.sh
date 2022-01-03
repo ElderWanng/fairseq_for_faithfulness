@@ -5,8 +5,8 @@ LEN_PEN=1.0
 DATA=/scratch/tw2112/codes/ablation/giga
 
 DATA_PATH=$DATA/giga_binarized
-MODEL_PATH=$DATA/ckpt2/checkpoint_best.pt
-RESULT_PATH=./outdir/giga2
+MODEL_PATH=$DATA/ckpt4/checkpoint_best.pt
+RESULT_PATH=./outdir/giga4
 
 
 fairseq-generate $DATA_PATH \

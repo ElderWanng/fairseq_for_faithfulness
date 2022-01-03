@@ -1,11 +1,11 @@
 set -e
-#export BART_PATH=/scratch/tw2112/codes/models/bart.large/model.pt
-BART_PATH=/scratch/tw2112/codes/ablation/wiki_weight/ckpt_nli/checkpoint1.pt
+export BART_PATH=/scratch/tw2112/codes/models/bart.large/model.pt
+#BART_PATH=/scratch/tw2112/codes/ablation/wiki_weight/ckpt_nli/checkpoint1.pt
 DATA=/scratch/tw2112/codes/ablation/wiki_weight
 
 
 
-TOTAL_NUM_UPDATES=30000
+TOTAL_NUM_UPDATES=20000
 WARMUP_UPDATES=500
 LR=3e-05
 END_LR=6e-6
@@ -20,7 +20,7 @@ DATA_DIR=$DATA/pos_bin
 NEG_DIR=$DATA/neg_bin
 NLI_DIR=$DATA/nli_bin
 
-NEG_COEF=0.8
+NEG_COEF=1
 NLI_COEF=0.8
 NLI_SIZE=500000
 
