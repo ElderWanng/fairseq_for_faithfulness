@@ -5,14 +5,14 @@ from questeval.questeval_metric import QuestEval
 # questeval = QuestEval(no_cuda=False)
 questeval = QuestEval(no_cuda=False,use_cache=True,task='summarization', do_weighter=True)
 # xsum
-# hypo_file = './outdir/xsum_nli_weight/formatted-test.txt'
-# source_file = '/scratch/tw2112/codes/ablation/xsum_weight/pos_raw/test.source'
-# label_file = '/scratch/tw2112/codes/ablation/xsum_weight/pos_raw/test.target'
+hypo_file = './outdir/xsum_nli_weight/formatted-test.txt'
+source_file = '/scratch/tw2112/codes/ablation/xsum_weight/pos_raw/test.source'
+label_file = '/scratch/tw2112/codes/ablation/xsum_weight/pos_raw/test.target'
 
 # giga
-source_file = '/scratch/tw2112/codes/ablation/giga_weight/pos_raw/test.source'
-hypo_file = './outdir/giga_weight_nli/formatted-test.txt'
-label_file = '/scratch/tw2112/codes/ablation/giga_weight/pos_raw/test.target'
+# source_file = '/scratch/tw2112/codes/ablation/giga_weight/pos_raw/test.source'
+# hypo_file = './outdir/giga_weight_nli/formatted-test.txt'
+# label_file = '/scratch/tw2112/codes/ablation/giga_weight/pos_raw/test.target'
 
 # wiki
 # source_file = '/scratch/tw2112/codes/ablation/wiki_weight/pos_raw/test.source'
@@ -21,7 +21,7 @@ label_file = '/scratch/tw2112/codes/ablation/giga_weight/pos_raw/test.target'
 
 import  pandas as pd
 
-keep = 2000
+keep = 20000
 with open(label_file,'r') as reffile:
     refs = []
     for i in reffile:
@@ -62,7 +62,7 @@ for i in tqdm.tqdm(range(len(docs))):
     fragments = Fragments(pred,doc)
 
     dfres.loc[i]=[fragments.coverage(), fragments.density()]
-#
+
 # print(dfres)
 print(f"{dfres.Coverage.mean():.4f}")
 print(f"{dfres.Density.mean():.4f}")

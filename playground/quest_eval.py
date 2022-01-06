@@ -12,12 +12,13 @@ questeval = QuestEval(no_cuda=False,use_cache=True,task='summarization', do_weig
 # giga
 source_file = '/scratch/tw2112/codes/ablation/giga/giga_raw/test.source'
 hypo_file = 'outdir/giga4/formatted-test.txt'
+# hypo_file = 'outdir/giga/formatted-test.txt'
 label_file = '/scratch/tw2112/codes/ablation/giga/giga_raw/test.target'
 
 
 
 
-keep = 2000
+keep = 20000
 with open(label_file,'r') as reffile:
     refs = []
     for i in reffile:

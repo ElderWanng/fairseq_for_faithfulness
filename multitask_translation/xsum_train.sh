@@ -1,7 +1,7 @@
 set -e
 export BART_PATH=/scratch/tw2112/codes/models/bart.large/model.pt
 DATA=/scratch/tw2112/codes/ablation/xsum_weight
-TOTAL_NUM_UPDATES=40000
+TOTAL_NUM_UPDATES=30000
 WARMUP_UPDATES=500
 LR=3e-05
 END_LR=6e-6
@@ -15,7 +15,7 @@ MAX_TOKENS=2048
 UPDATE_FREQ=4
 
 
-SAVE_PATH=$DATA/ckpt_nli
+SAVE_PATH=$DATA/ckpt_nli2
 
 DATA_DIR=$DATA/pos_bin
 NEG_DIR=$DATA/neg_bin

@@ -153,3 +153,4 @@ wandb/
 /.pre-commit-config.yaml
 /venv/
 /playground/train_debug.sh
+/no_git/

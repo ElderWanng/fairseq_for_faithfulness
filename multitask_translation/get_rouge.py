@@ -25,7 +25,7 @@ print(rouge_res['rouge1'].mid.fmeasure*100)
 print(rouge_res['rouge2'].mid.fmeasure*100)
 print(rouge_res['rougeL'].mid.fmeasure*100)
 
-hypo_file = './outdir/xsum_ablation_weight/formatted-test.txt'
+hypo_file = './outdir/xsum_nli_weight/formatted-test.txt'
 label_file = '/scratch/tw2112/codes/ablation/xsum_weight/pos_raw/test.target'
 
 # hypo_file = 'outdir/giga2/formatted-test.txt'
